@@ -1,0 +1,70 @@
+{
+    "variables": {
+        "user": "root",
+        "password": "p@ssw0rd",
+        "disk_size": "3074",
+        "name": "ubuntu-16.04-server-amd64"
+    },
+
+    "builders":
+    [
+        {
+            "vm_name": "{{ user `name`}}",
+            "output_directory": "output-{{ user `name` }}",
+            "type": "qemu",
+            "format": "raw",
+            "accelerator": "kvm",
+            "disk_size": "{{ user `disk_size`}}",
+            "iso_url": "http://releases.ubuntu.com/16.04/ubuntu-16.04.5-server-amd64.iso",
+            "iso_checksum": "24636fd103a2a43c95659f1c3c63718e",
+            "iso_checksum_type": "md5",
+            "qemu_binary": "/usr/libexec/qemu-kvm",
+            "http_directory": "http",
+            "headless": true,
+            "net_device": "virtio-net",
+            "disk_interface": "virtio",
+            "ssh_username": "{{user `user`}}",
+            "ssh_password": "{{user `password`}}",
+            "ssh_wait_timeout": "10m",
+            "shutdown_command": "echo '{{user `password`}}'|sudo -S shutdown -P now",
+            "vnc_bind_address": "0.0.0.0",
+            "boot_wait": "5s",
+            "boot_command": [
+                "<enter><wait>",
+                "<f6><esc>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs>",
+                "/install/vmlinuz ",
+                "initrd=/install/initrd.gz ",
+                "auto-install/enable=true ",
+                "debconf/priority=critical ",
+                "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ubuntu-16.04/ubuntu-16.04-server-amd64.cfg ",
+                "<enter>"
+            ]
+	    }
+    ],
+    "post-processors":
+    [
+        {
+            "type": "shell-local",
+            "environment_vars": [
+                "IMAGE_PATH=output-{{user `name`}}/{{user `name`}}",
+                "ROOT_IMAGE_NAME=output-{{user `name`}}/root",
+                "PARTITION_NUMBER=3"
+                ],
+            "scripts": ["./scripts/isolate_root.sh"]
+        },
+        {
+          "type": "shell-local",
+          "inline": ["gzip output-{{user `name`}}/root.img"]
+        }
+    ]
+
+}
