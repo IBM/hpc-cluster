@@ -1,0 +1,133 @@
+---
+- name: Install Symphony
+  hosts: 127.0.0.1
+  connection: local
+  vars:
+    cluster_name: my_cluster
+
+  pre_tasks:
+    - set_fact:
+        compute_node: "Y"
+      tags: compute
+
+    - set_fact:
+        compute_node: "N"
+      tags: ['master', 'failover']
+
+  roles:
+    - role: common
+      tags: always
+    - role: management
+      tags: ['master', 'failover']
+    - role: compute
+      tags: compute
+
+
+- name: Configure master
+  hosts: 127.0.0.1
+  connection: local
+  tags: master
+
+  tasks:
+    - shell: ". /opt/ibm/spectrumcomputing/profile.platform; egoconfig join {{ ansible_fqdn }} -f; egoconfig setentitlement /tmp/sym721ent"
+      become: true
+      become_user: egoadmin
+
+    - shell: ". /opt/ibm/spectrumcomputing/profile.platform; egoconfig mghost /failover -f"
+      become: true
+      become_user: egoadmin
+
+    - file:
+        path: /failover/configured-{{ ansible_hostname }}
+        owner: root
+        group: root
+        mode: 0644
+        state: touch
+
+    - wait_for:
+        path: /failover/configured-{{ failover.hostname }}
+        sleep: 5
+        timeout: 3600
+
+    - shell: su egoadmin -c ". /opt/ibm/spectrumcomputing/profile.platform; egoconfig masterlist {{ ansible_hostname }},{{ failover.hostname }} -f"
+
+
+- name: Configure failover
+  hosts: 127.0.0.1
+  connection: local
+  tags: failover
+
+  tasks:
+    - wait_for:
+        path: /failover/configured-{{ master.hostname }}
+        sleep: 5
+        timeout: 3600
+
+    - shell: ". /opt/ibm/spectrumcomputing/profile.platform; egoconfig join {{ ansible_fqdn }} -f"
+      become: true
+      become_user: egoadmin
+
+    - shell: ". /opt/ibm/spectrumcomputing/profile.platform; egoconfig mghost /failover -f"
+      become: true
+      become_user: egoadmin
+
+    - file:
+        path: /failover/configured-{{ ansible_hostname }}
+        owner: root
+        group: root
+        mode: 0644
+        state: touch
+
+
+- name: Configure compute
+  hosts: 127.0.0.1
+  connection: local
+  tags: compute
+
+  tasks:
+    - shell: ". /opt/ibm/spectrumcomputing/profile.platform; egoconfig join {{ master.hostname }} -f"
+      become: true
+      become_user: egoadmin
+
+
+- name: Configure/start ego service (all nodes)
+  hosts: 127.0.0.1
+  connection: local
+  tags: always
+
+  tasks:
+    - shell: . /opt/ibm/spectrumcomputing/profile.platform; egosetrc.sh
+
+    - shell: . /opt/ibm/spectrumcomputing/profile.platform; egosetsudoers.sh -f
+
+    - copy:
+        dest: /etc/profile.d/spectrumcomputing.sh
+        content: |
+          [ -f /opt/ibm/spectrumcomputing/profile.platform ] && source /opt/ibm/spectrumcomputing/profile.platform
+          [ -f /opt/lsf/conf/profile.lsf ] && source /opt/lsf/conf/profile.lsf
+        owner: root
+        group: root
+        mode: 0755
+
+    - service:
+        name: ego
+        state: started
+
+
+- name: Install application dependencies on compute nodes
+  hosts: 127.0.0.1
+  connection: local
+  tags: compute
+
+  tasks:
+    - package:
+        name: "{{item}}"
+        state: latest
+        update_cache: yes
+      with_items:
+        - gcc
+        - gcc-c++
+        - glibc.i686
+        - httpd
+        - java-1.7.0-openjdk
+        - unzip

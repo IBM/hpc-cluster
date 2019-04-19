@@ -1,0 +1,8 @@
+127.0.0.1 localhost.localdomain localhost
+{{ ansible_eth0.ipv4.address }} {{ ansible_fqdn }} {{ ansible_hostname }}
+
+{% if master is defined %}
+{{ master.ip }} {{ master.hostname }}.{{ master.domain }} {{ master.hostname }}
+{% else %}
+{{ failover.ip }} {{ failover.hostname }}.{{ failover.domain }} {{ failover.hostname }}
+{% endif %}

@@ -1,0 +1,31 @@
+---
+- template:
+    src: etc/hosts.j2
+    dest: /etc/hosts
+    owner: root
+    group: root
+    mode: 0644
+
+- file:
+    path: /failover
+    owner: egoadmin
+    group: egoadmin
+    mode: 0755
+    state: directory
+
+- mount:
+    opts: vers=3
+    src: "{{ nfs_mount }}"
+    path: /failover
+    fstype: nfs
+    state: mounted
+
+# For some reason, the mount operation sometimes causes the ownership of
+# /failover to revert to root, causing problems in later steps run as egoadmin.
+# Force ownership
+- file:
+    path: /failover
+    owner: egoadmin
+    group: egoadmin
+    mode: 0755
+    state: directory
