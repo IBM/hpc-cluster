@@ -1,15 +1,3 @@
-"""
-*===================================================================
-*
-* Licensed Materials - Property of IBM
-* IBM Cloud HPC Cluster
-* Copyright IBM Corporation 2019. All Rights Reserved.
-* US Government Users Restricted Rights - Use, duplication or disclosure
-* restricted by GSA ADP Schedule Contract with IBM Corp.
-*
-*===================================================================
-"""
-
 import sys
 import getopt
 from pycryptoki.default_templates import CKM_AES_KEY_GEN_TEMP
