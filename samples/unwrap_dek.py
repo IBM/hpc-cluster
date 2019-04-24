@@ -1,3 +1,15 @@
+"""
+*===================================================================
+*
+* Licensed Materials - Property of IBM
+* IBM Cloud HPC Cluster
+* Copyright IBM Corporation 2019. All Rights Reserved.
+* US Government Users Restricted Rights - Use, duplication or disclosure
+* restricted by GSA ADP Schedule Contract with IBM Corp.
+*
+*===================================================================
+"""
+
 import base64
 import sys
 import os
@@ -63,7 +75,7 @@ def decrypt(password, kek_label, path_to_plain_text):
             c_finalize_ex()
 
     if decrypted:
-        return base64.b64encode(decrypted)
+        return decrypted
     else:
         raise Exception("Failed to decrypt DEK")
 
