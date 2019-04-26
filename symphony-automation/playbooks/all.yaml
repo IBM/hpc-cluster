@@ -3,7 +3,10 @@
   hosts: 127.0.0.1
   connection: local
   vars:
-    cluster_name: my_cluster
+    # Default values
+    cluster_name: cluster1
+    host_factory:
+      api_endpoint: hpc-cluster.cloud.ibm.com/api/v1
 
   pre_tasks:
     - set_fact:
@@ -28,8 +31,8 @@
   connection: local
   tags: master
 
-  tasks:
-    - shell: ". /opt/ibm/spectrumcomputing/profile.platform; egoconfig join {{ ansible_fqdn }} -f; egoconfig setentitlement /tmp/sym721ent"
+  pre_tasks:
+    - shell: ". /opt/ibm/spectrumcomputing/profile.platform; egoconfig join {{ ansible_fqdn }} -f; egoconfig setentitlement /tmp/symphony-entitlement"
       become: true
       become_user: egoadmin
 
@@ -45,11 +48,14 @@
         state: touch
 
     - wait_for:
-        path: /failover/configured-{{ failover.hostname }}
+        path: /failover/configured-{{ mgmt2.hostname }}
         sleep: 5
         timeout: 3600
 
-    - shell: su egoadmin -c ". /opt/ibm/spectrumcomputing/profile.platform; egoconfig masterlist {{ ansible_hostname }},{{ failover.hostname }} -f"
+    - shell: su egoadmin -c ". /opt/ibm/spectrumcomputing/profile.platform; egoconfig masterlist {{ ansible_hostname }},{{ mgmt2.hostname }} -f"
+
+  roles:
+    - hostfactory
 
 
 - name: Configure failover
@@ -57,9 +63,9 @@
   connection: local
   tags: failover
 
-  tasks:
+  pre_tasks:
     - wait_for:
-        path: /failover/configured-{{ master.hostname }}
+        path: /failover/configured-{{ mgmt1.hostname }}
         sleep: 5
         timeout: 3600
 
@@ -78,6 +84,9 @@
         mode: 0644
         state: touch
 
+  roles:
+    - hostfactory
+
 
 - name: Configure compute
   hosts: 127.0.0.1
@@ -85,7 +94,7 @@
   tags: compute
 
   tasks:
-    - shell: ". /opt/ibm/spectrumcomputing/profile.platform; egoconfig join {{ master.hostname }} -f"
+    - shell: ". /opt/ibm/spectrumcomputing/profile.platform; egoconfig join {{ mgmt1.hostname }} -f"
       become: true
       become_user: egoadmin
 
@@ -112,22 +121,3 @@
     - service:
         name: ego
         state: started
-
-
-- name: Install application dependencies on compute nodes
-  hosts: 127.0.0.1
-  connection: local
-  tags: compute
-
-  tasks:
-    - package:
-        name: "{{item}}"
-        state: latest
-        update_cache: yes
-      with_items:
-        - gcc
-        - gcc-c++
-        - glibc.i686
-        - httpd
-        - java-1.7.0-openjdk
-        - unzip

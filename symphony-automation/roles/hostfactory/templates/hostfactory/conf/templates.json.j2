@@ -1,0 +1,19 @@
+{
+    "templates": [
+        {
+            "templateId": "Template_VM_1",
+            "maxNumber": 2,
+            "attributes": {
+                "type": ["String", "X86_64"],
+                "ncores": ["Numeric", "1"],
+                "ncpus": ["Numeric", "4"],
+                "nram": ["Numeric", "8192"]
+            },
+            "configurationId": "4X8X25_VSI",
+            "hostnamePrefix": "sym-cmpt",
+            "domain": "hf.ibm.local",
+            "imageId": "{{ host_factory.os }}",
+            "hsmKey": "{{ host_factory.kek_label }}"
+        }
+    ]
+}

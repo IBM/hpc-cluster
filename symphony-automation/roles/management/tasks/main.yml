@@ -1,4 +1,9 @@
 ---
+- name: Load NFS module
+  modprobe:
+    name: nfs
+    state: present
+
 - template:
     src: etc/hosts.j2
     dest: /etc/hosts

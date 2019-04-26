@@ -1,0 +1,84 @@
+- get_url:
+    url: "https://s3.private.us.cloud-object-storage.appdomain.cloud/hpc-install-symphony/hostfactory_provider_ibmcloud_hpc-0.1.0-py2-none-any.whl"
+    dest: "/tmp"
+
+- file:
+    path: "{{ item }}"
+    owner : egoadmin
+    group: egoadmin
+    mode: 0755
+    state: directory
+    recurse: true
+  with_items:
+    - /opt/ibm/spectrumcomputing/3.7/hostfactory/providers/ibmcloud-hpc/lib
+    - /opt/ibm/spectrumcomputing/3.7/hostfactory/providers/ibmcloud-hpc/scripts
+    - /failover/eservice/hostfactory/conf/providers/ibmcloud-hpc/conf
+
+- copy:
+    src: /tmp/hostfactory_provider_ibmcloud_hpc-0.1.0-py2-none-any.whl
+    dest: /opt/ibm/spectrumcomputing/3.7/hostfactory/providers/ibmcloud-hpc/lib
+    owner: egoadmin
+    group: egoadmin
+    remote_src: true
+    mode: 0644
+
+- template:
+    src: hostfactory/scripts/{{ item }}.j2
+    dest: /opt/ibm/spectrumcomputing/3.7/hostfactory/providers/ibmcloud-hpc/scripts/{{ item }}
+    owner: egoadmin
+    group: egoadmin
+    mode: 0755
+  with_items:
+    - getAvailableTemplates.sh
+    - getRequestStatus.sh
+    - requestMachines.sh
+    - requestReturnMachines.sh
+
+- template:
+    src: hostfactory/conf/{{ item }}.j2
+    dest: /failover/eservice/hostfactory/conf/providers/ibmcloud-hpc/conf/{{ item }}
+    owner: egoadmin
+    group: egoadmin
+    mode: 0644
+  with_items:
+    - config.json
+    - templates.json
+
+- copy:
+    src: hostfactory/conf/providers/hostProviders.json
+    dest: /failover/eservice/hostfactory/conf/providers
+    owner: egoadmin
+    group: egoadmin
+    mode: 0644
+
+- copy:
+    src: hostfactory/conf/requestors/hostRequestors.json
+    dest: /failover/eservice/hostfactory/conf/requestors
+    owner: egoadmin
+    group: egoadmin
+    mode: 0644
+
+- copy:
+    src: hostfactory/conf/requestors/symA/conf/symAreq_config.json
+    dest: /failover/eservice/hostfactory/conf/requestors/symA/conf
+    owner: egoadmin
+    group: egoadmin
+    mode: 0644
+
+# Replace schema with pristine version from activation
+- copy:
+    src: /opt/ibm/spectrumcomputing/eservice/activation/3.7/hostfactory/conf/schema/{{ item }}
+    dest: /failover/eservice/hostfactory/conf/schema
+    remote_src: true
+    owner: egoadmin
+    group: egoadmin
+    mode: 0644
+  with_items:
+    - demand_request.properties
+    - provisioned_host.properties
+    - request.properties
+
+- replace:
+    path: /failover/eservice/esc/conf/services/hostfactory.xml
+    regexp: "<sc:StartType>MANUAL</sc:StartType>"
+    replace: "<sc:StartType>AUTOMATIC</sc:StartType>"

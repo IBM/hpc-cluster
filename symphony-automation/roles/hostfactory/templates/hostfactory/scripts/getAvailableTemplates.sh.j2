@@ -1,0 +1,18 @@
+#!/bin/sh
+# This script:
+#    - should be called as getAvailableTemplates.sh -f input.json
+#    - exit with 0 if calling succeed and result will be in the stdOut
+#    - exit with 1 if calling failed and error message will be in the stdOut
+#
+inJson=$2
+
+. ${EGO_TOP}/profile.platform
+common_lib_dir=${EGO_TOP}/${EGO_VERSION}/hostfactory/providers/common/lib
+ibm_lib_dir=${EGO_TOP}/${EGO_VERSION}/hostfactory/providers/ibmcloud-hpc/lib/hostfactory_provider_ibmcloud_hpc-0.1.0-py2-none-any.whl
+
+export PYTHONPATH=$common_lib_dir:$ibm_lib_dir
+{% if 'proxy' in host_factory %}
+export https_proxy=http://{{ host_factory.proxy.ip }}:{{ host_factory.proxy.port }}
+{% endif %}
+
+python -m hostfactory_provider_ibmcloud_hpc.main --getAvailableTemplates $inJson

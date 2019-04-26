@@ -1,8 +1,7 @@
 127.0.0.1 localhost.localdomain localhost
-{{ ansible_eth0.ipv4.address }} {{ ansible_fqdn }} {{ ansible_hostname }}
 
-{% if master is defined %}
-{{ master.ip }} {{ master.hostname }}.{{ master.domain }} {{ master.hostname }}
-{% else %}
-{{ failover.ip }} {{ failover.hostname }}.{{ failover.domain }} {{ failover.hostname }}
-{% endif %}
+# master management node
+{{ mgmt1.ip }} {{ mgmt1.hostname }}.{{ mgmt1.domain }} {{ mgmt1.hostname }}
+
+# failover management node
+{{ mgmt2.ip }} {{ mgmt2.hostname }}.{{ mgmt2.domain }} {{ mgmt2.hostname }}

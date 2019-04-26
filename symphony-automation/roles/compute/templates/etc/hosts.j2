@@ -1,5 +1,5 @@
 127.0.0.1 localhost.localdomain localhost
 {{ ansible_default_ipv4.address }} {{ ansible_fqdn }} {{ ansible_hostname }}
 
-{{ master.ip }} {{ master.hostname }}.{{ master.domain }} {{ master.hostname }}
-{{ failover.ip }} {{ failover.hostname }}.{{ failover.domain }} {{ failover.hostname }}
+{{ mgmt1.ip }} {{ mgmt1.hostname }}.{{ mgmt1.domain }} {{ mgmt1.hostname }}
+{{ mgmt2.ip }} {{ mgmt2.hostname }}.{{ mgmt2.domain }} {{ mgmt2.hostname }}

@@ -1,25 +1,11 @@
 ---
 
-- name: Get Kernel Version
-  shell: uname -r
-  register: kernel_version
+- set_fact:
+    accept_symphony_license: "N"
 
-- name: Check modules directory
-  stat:
-    path: "/lib/modules/{{ kernel_version.stdout }}"
-  register: modules_dir
-
-- name: Update kernel for CentOS and RedHat
-  yum:
-    name: "kernel-{{ kernel_version.stdout }}"
-    state: present
-  when: (ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat') and
-        (not modules_dir.stat.exists)
-
-- name: Load NFS module
-  modprobe:
-    name: nfs
-    state: present
+- set_fact:
+    accept_symphony_license: "Y"
+  when: IBM_spectrum_symphony.accept_license
 
 - stat:
     path: /etc/cloud/cloud.cfg
@@ -55,35 +41,17 @@
     group: root
     mode: 0700
 
-- copy:
-    dest: /root/.aws/credentials
-    content: |
-      [default]
-      aws_access_key_id = {{ cos.access_key_id }}
-      aws_secret_access_key = {{ cos.secret_access_key }}
-    mode: 0600
-    owner: root
-    group: root
-
-- copy:
-    dest: /root/.aws/config
-    content: |
-      [default]
-    mode: 0600
-    owner: root
-    group: root
-
 - stat:
     path: /opt/ibm/spectrumcomputing/
   register: installdir
 
-- shell: aws --endpoint=https://s3.private.us.cloud-object-storage.appdomain.cloud s3 cp s3://{{ cos.install_bucket }}/{{ item }} .
+- get_url:
+    url: "https://s3.private.us.cloud-object-storage.appdomain.cloud/hpc-install-symphony/{{ item.name }}"
+    dest: "/tmp/{{ item.dest }}"
   with_items:
-    - sym-7.2.1.0_x86_64.bin
-    - sym-7.2.1.1_x86_64.tar.gz
-    - sym721ent
-  args:
-    chdir: /tmp
+    - { "name": "sym-7.2.1.0_x86_64.bin", "dest": "" }
+    - { "name": "sym-7.2.1.1_x86_64.tar.gz", "dest": "" }
+    - { "name": "sym_com_entitlement.dat", "dest": "symphony-entitlement" }
   when: not installdir.stat.exists
 
 - file:
@@ -91,7 +59,7 @@
     mode: 0755
   when: not installdir.stat.exists
 
-- shell: IBM_SPECTRUM_SYMPHONY_LICENSE_ACCEPT=Y EGOCOMPUTEHOST={{ compute_node }} CLUSTERNAME={{ cluster_name }} /tmp/sym-7.2.1.0_x86_64.bin --quiet
+- shell: IBM_SPECTRUM_SYMPHONY_LICENSE_ACCEPT={{ accept_symphony_license }} EGOCOMPUTEHOST={{ compute_node }} CLUSTERNAME={{ cluster_name }} /tmp/sym-7.2.1.0_x86_64.bin --quiet
   args:
     creates: /opt/ibm/spectrumcomputing
 
