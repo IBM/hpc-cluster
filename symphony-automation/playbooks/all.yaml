@@ -5,8 +5,7 @@
   vars:
     # Default values
     cluster_name: cluster1
-    host_factory:
-      api_endpoint: hpc-cluster.cloud.ibm.com/api/v1
+    api_endpoint: hpc-cluster.cloud.ibm.com/api/v1
 
   pre_tasks:
     - set_fact:
