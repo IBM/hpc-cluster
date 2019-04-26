@@ -11,8 +11,8 @@
 	},		
 	"nfs_mount": "nfsDATACENTER-fz.service.softlayer.com:/ACCOUNT_ID_INSTANCE_ID",
 	"IBM_spectrum_symphony": {
-   		"accept_license": false,
-		"terms_and_conditions": "https://github.com/IBM/hpc-cluster/blob/master/symphony-sample/LA_en.html"
+		"terms_and_conditions": "https://github.com/IBM/hpc-cluster/blob/master/symphony-sample/LA_en.html",
+   		"accept_license": false
 	},
 	"mgmt1": {
 		"ip": "1.2.3.4",
