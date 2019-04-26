@@ -1,0 +1,27 @@
+{
+	"host_factory": {
+		"cluster_id": "16c66881-a59d-4c79-a4d4-32b508518d27",
+		"iam_api_key": "IBM_IAM_API_KEY_HERE",
+		"os": "redhat/redhat",
+		"kek_label": "test_key0",
+		"proxy": {
+			"ip": "1.2.3.4",
+			"port": "1234"
+		}
+	},		
+	"nfs_mount": "nfsDATACENTER-fz.service.softlayer.com:/ACCOUNT_ID_INSTANCE_ID",
+	"IBM_spectrum_symphony": {
+   		"accept_license": false,
+		"description": "TBD"
+	},
+	"mgmt1": {
+		"ip": "1.2.3.4",
+		"hostname": "sym-mgmt-abcde01234-1",
+		"domain": "ibm.com"
+	},
+	"mgmt2": {
+		"ip": "1.2.3.4",
+		"hostname": "sym-mgmt-abcde01234-2",
+		"domain": "ibm.com"
+	}
+}
