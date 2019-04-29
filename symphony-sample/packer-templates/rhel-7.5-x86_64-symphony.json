@@ -53,9 +53,7 @@
     {
       "type": "ansible",
       "extra_arguments": [
-        "--extra-vars", "{'cos': {'config_bucket': '{{ user `operating_system_bucket` }}','access_key_id': '{{ user `access_key_id` }}','secret_access_key': '{{ user `secret_access_key` }}', 'config_file_name': '{{ user `config_file_name` }}'}}",
-        "ansible_user=root",
-        "ansible_ssh_pass={{ user `root_password` }}"
+        "--extra-vars", "{'cos': {'config_bucket': '{{ user `operating_system_bucket` }}','access_key_id': '{{ user `access_key_id` }}','secret_access_key': '{{ user `secret_access_key` }}', 'config_file_name': '{{ user `config_file_name` }}'}}"
       ],
       "playbook_file": "scripts/playbook.yml"
     }	  
