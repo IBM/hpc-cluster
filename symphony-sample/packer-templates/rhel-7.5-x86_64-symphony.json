@@ -6,7 +6,8 @@
     "operating_system_bucket": "OPERATING_SYSTEM_BUCKET",
     "access_key_id": "COS_ACCESS_KEY_ID",
     "secret_access_key": "COS_SECRET_ACCESS_KEY",
-    "config_file_name": "symphony_config.json"
+    "config_file_name": "symphony_config.json",
+    "root_password": "p@ssw0rd"
   },
   "builders": [
     {
@@ -25,7 +26,7 @@
       "iso_checksum_type": "md5",
 
       "ssh_username": "root",
-      "ssh_password": "p@ssw0rd",
+      "ssh_password": "{{ user `root_password` }}",
       "ssh_wait_timeout": "90m",
 
       "http_directory": "http",
@@ -52,8 +53,9 @@
     {
       "type": "ansible",
       "extra_arguments": [
-        "--inventory-file=/scripts/inventory",
-        "--extra-vars", "{'cos': {'config_bucket': '{{ user `operating_system_bucket` }}','access_key_id': '{{ user `access_key_id` }}','secret_access_key': '{{ user `secret_access_key` }}', 'config_file_name': '{{ user `config_file_name` }}'}}"
+        "--extra-vars", "{'cos': {'config_bucket': '{{ user `operating_system_bucket` }}','access_key_id': '{{ user `access_key_id` }}','secret_access_key': '{{ user `secret_access_key` }}', 'config_file_name': '{{ user `config_file_name` }}'}}",
+        "ansible_user=root",
+        "ansible_ssh_pass={{ user `root_password` }}"
       ],
       "playbook_file": "scripts/playbook.yml"
     }	  

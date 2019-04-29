@@ -40,11 +40,6 @@
       src: cloud-config.yaml
       dest: /etc/cloud/cloud.cfg
   
-#  - name: Copy over symphony playbook
-#    copy:
-#      src: /root/symphony-automation
-#      dest: /tmp
-
   - name: Download symphony-automation from git zip file
     get_url:
       url: https://github.com/IBM/hpc-cluster/archive/master.zip
@@ -57,7 +52,7 @@
       remote_src: yes
 
   - name : Only save symphony-automation playbook
-    shell: mv /tmp/hpc-cluster-master/symphony-automation /tmp && rm -rf /tmp/hpc-cluster-master /tmp/hpc-cluster-master.zip
+    shell: mv /tmp/hpc-cluster-master/symphony-sample/automation /tmp/symphony-automation && rm -rf /tmp/hpc-cluster-master /tmp/hpc-cluster-master.zip
 
 
   - name: Install python requests library from pip
@@ -66,8 +61,8 @@
 
   - name: Copy over symphony systemd script
     template:
-      src: symphony.j2
-      dest: /usr/bin/symphony
+      src: symphony-install.j2
+      dest: /usr/bin/symphony-install
       owner: root
       group: root
       mode: 0755
