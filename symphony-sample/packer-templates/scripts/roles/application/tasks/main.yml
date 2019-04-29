@@ -1,0 +1,11 @@
+- package:
+    name: "{{item}}"
+    state: latest
+    update_cache: yes
+  with_items:
+    - gcc
+    - gcc-c++
+    - glibc.i686
+    - httpd
+    - java-1.7.0-openjdk
+    - unzip

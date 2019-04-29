@@ -1,0 +1,75 @@
+{
+  "variables": {
+    "iso_url": "isos/RHEL-7.5-20180322.0-ComputeNode-x86_64-dvd1.iso",
+    "iso_checksum": "80f00cd7acc0b501c9976a67b0d854fb",
+    "name": "rhel-7.5-x86_64-symphony",
+    "operating_system_bucket": "OPERATING_SYSTEM_BUCKET",
+    "access_key_id": "COS_ACCESS_KEY_ID",
+    "secret_access_key": "COS_SECRET_ACCESS_KEY",
+    "config_file_name": "symphony_config.json"
+  },
+  "builders": [
+    {
+      "type": "qemu",
+      "format": "raw",
+      "headless": true,
+      "accelerator": "kvm",
+      "net_device": "virtio-net",
+      "disk_interface": "virtio",
+
+      "vm_name": "{{ user `name` }}",
+      "output_directory": "output-{{ user `name` }}",
+
+      "iso_url": "{{ user `iso_url` }}",
+      "iso_checksum": "{{ user `iso_checksum` }}",
+      "iso_checksum_type": "md5",
+
+      "ssh_username": "root",
+      "ssh_password": "p@ssw0rd",
+      "ssh_wait_timeout": "90m",
+
+      "http_directory": "http",
+      "http_port_min": 10082,
+      "http_port_max": 10089,
+
+      "disk_size": 3072,
+      "vnc_bind_address": "0.0.0.0",
+
+      "boot_wait": "5s",
+      "boot_command": [
+        "<up><tab> inst.text console=tty0 console=ttyS0,115200n8 inst.geoloc=0 net.ifnames=0 ks.device=bootif biosdevname=0 ks.sendmac cloudBuild_hardware_profile=kvm_cfg1 kssendmac ipv6.disable=1 ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/rhel-7.5-symphony/anaconda-ks.cfg<enter><wait>"
+      ],
+      "shutdown_command": "shutdown -P now",
+
+      "qemu_binary": "/usr/libexec/qemu-kvm",
+      "qemuargs": [
+        [ "-m", "2048M" ],
+        [ "-serial", "file:output-{{ user `name` }}/serial.log" ]
+      ]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "ansible",
+      "extra_arguments": [
+        "--inventory-file=/scripts/inventory",
+        "--extra-vars", "{'cos': {'config_bucket': '{{ user `operating_system_bucket` }}','access_key_id': '{{ user `access_key_id` }}','secret_access_key': '{{ user `secret_access_key` }}', 'config_file_name': '{{ user `config_file_name` }}'}}"
+      ],
+      "playbook_file": "scripts/playbook.yml"
+    }	  
+  ],
+  "post-processors": [
+    {
+      "type": "shell-local",
+      "environment_vars": [
+        "IMAGE_PATH=output-{{ user `name` }}/{{ user `name` }}",
+        "ROOT_IMAGE_NAME=output-{{user `name`}}/root"
+        ],
+      "scripts": ["scripts/isolate_root.sh"]
+    },
+    {
+      "type": "shell-local",
+      "inline": ["gzip output-{{user `name`}}/root.img"]
+    }
+  ]
+}

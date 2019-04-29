@@ -1,0 +1,38 @@
+#!/usr/bin/python
+
+import subprocess
+import os
+import json
+import time
+
+def run():
+    # Download config file
+    rc = 1
+    while rc != 0:
+        rc = subprocess.call("aws --endpoint=https://s3.private.us.cloud-object-storage.appdomain.cloud s3 cp s3://{{ cos.config_bucket }}/{{ cos.config_file_name }} /tmp/".split(" "))
+        time.sleep(5)
+
+    # Read from config file
+    data = None
+    with open("/tmp/symphony_config.json") as json_file:
+        data = json.load(json_file)
+        #print(data)
+
+    # Get own ip and hostname
+    ip = subprocess.check_output("hostname -I".split(" ")).strip()
+    hostname = subprocess.check_output("cat /proc/sys/kernel/hostname".split(" ")).strip()
+
+    # Get role
+    role = "compute"
+    # Check if main mgmt node
+    if ip == data["mgmt1"]["ip"] and hostname == "%s.%s" % (data["mgmt1"]["hostname"], data["mgmt1"]["domain"]):
+        role = "master"    
+
+    if ip == data["mgmt2"]["ip"] and hostname == "%s.%s" % (data["mgmt2"]["hostname"], data["mgmt2"]["domain"]):
+        role = "failover"
+
+    os.chdir("/tmp/symphony-automation") 
+    os.system("ansible-playbook --tags={0} --extra-vars='{1}' playbooks/all.yaml &> /var/log/symphony.txt".format(role, json.dumps(data)))
+
+if __name__ == "__main__":
+    run()

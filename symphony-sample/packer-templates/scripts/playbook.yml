@@ -1,0 +1,107 @@
+---
+- name: Cloud Init and Symphony Playbook Setup
+  hosts: all
+  tasks:
+  - name: Copy repo files to yum repos directory
+    copy:
+      src: "{{ item }}"
+      dest: /etc/yum.repos.d
+      owner: root
+      group: root
+      mode: 644
+    with_items:
+      - os.repo
+      - extras.repo
+      - updates.repo
+    when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat'
+
+  - name: Install Cloud Init dependencies for symphony playbook
+    package:
+      name: "{{item}}"
+      state: latest
+      update_cache: yes
+    with_items:
+      - cloud-init
+      - awscli
+      - bind-utils
+      - dejavu-serif-fonts
+      - ed
+      - net-tools
+      - nfs-utils
+      - psmisc
+      - ansible
+      - epel-release
+      - python-pip
+      - unzip
+      - kernel-3.10.0-957.1.3.el7.x86_64
+
+  - name: Add cloud-init config to image
+    copy:
+      src: cloud-config.yaml
+      dest: /etc/cloud/cloud.cfg
+  
+#  - name: Copy over symphony playbook
+#    copy:
+#      src: /root/symphony-automation
+#      dest: /tmp
+
+  - name: Download symphony-automation from git zip file
+    get_url:
+      url: https://github.com/IBM/hpc-cluster/archive/master.zip
+      dest: /tmp
+
+  - name: Unzip git zip file
+    unarchive:
+      src: /tmp/hpc-cluster-master.zip
+      dest: /tmp/
+      remote_src: yes
+
+  - name : Only save symphony-automation playbook
+    shell: mv /tmp/hpc-cluster-master/symphony-automation /tmp && rm -rf /tmp/hpc-cluster-master /tmp/hpc-cluster-master.zip
+
+
+  - name: Install python requests library from pip
+    pip:
+      name: requests
+
+  - name: Copy over symphony systemd script
+    template:
+      src: symphony.j2
+      dest: /usr/bin/symphony
+      owner: root
+      group: root
+      mode: 0755
+
+  - name: Create COS access directory
+    file:
+      path: /root/.aws
+      state: directory
+      owner: root
+      group: root
+      mode: 0700
+
+  - name: Create COS access credentials file
+    copy:
+      dest: /root/.aws/credentials
+      content: |
+        [default]
+        aws_access_key_id = {{ cos.access_key_id }}
+        aws_secret_access_key = {{ cos.secret_access_key }}
+      mode: 0600
+      owner: root
+      group: root
+
+  - name: Create COS access config file
+    copy:
+      dest: /root/.aws/config
+      content: |
+        [default]
+      mode: 0600
+      owner: root
+      group: root
+
+- name: Install application dependencies on compute nodes
+  hosts: all
+
+  roles: 
+    - application

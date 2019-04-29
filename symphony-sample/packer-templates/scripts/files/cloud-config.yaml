@@ -1,0 +1,6 @@
+#cloud-config
+datasource_list: [ None ]
+cloud_final_modules:
+ - bootcmd
+bootcmd :
+ - "cloud-init-per once symphony-install /usr/bin/symphony"
