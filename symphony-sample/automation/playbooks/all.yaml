@@ -2,10 +2,6 @@
 - name: Install Symphony
   hosts: 127.0.0.1
   connection: local
-  vars:
-    # Default values
-    cluster_name: cluster1
-    api_endpoint: hpc-cluster.cloud.ibm.com/api/v1
 
   pre_tasks:
     - set_fact:
