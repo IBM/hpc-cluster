@@ -25,10 +25,10 @@ def run():
     # Get role
     role = "compute"
     # Check if main mgmt node
-    if ip == data["mgmt1"]["ip"] and hostname == "%s.%s" % (data["mgmt1"]["hostname"], data["mgmt1"]["domain"]):
+    if ip == data["mgmt1"]["ip"] and hostname == "%s.%s" % (data["mgmt1"]["hostname"].lower(), data["mgmt1"]["domain"].lower()):
         role = "master"    
 
-    if ip == data["mgmt2"]["ip"] and hostname == "%s.%s" % (data["mgmt2"]["hostname"], data["mgmt2"]["domain"]):
+    if ip == data["mgmt2"]["ip"] and hostname == "%s.%s" % (data["mgmt2"]["hostname"].lower(), data["mgmt2"]["domain"].lower()):
         role = "failover"
 
     os.chdir("/tmp/symphony-automation") 
