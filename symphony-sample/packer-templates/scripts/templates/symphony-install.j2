@@ -18,6 +18,12 @@ def run():
         data = json.load(json_file)
         #print(data)
 
+    # Make hostname and domain lowercased
+    data["mgmt1"]["hostname"] = data["mgmt1"]["hostname"].lower()
+    data["mgmt2"]["hostname"] = data["mgmt2"]["hostname"].lower()
+    data["mgmt1"]["domain"] = data["mgmt1"]["domain"].lower()
+    data["mgmt2"]["domain"] = data["mgmt2"]["domain"].lower()
+
     # Get own ip and hostname
     ip = subprocess.check_output("hostname -I".split(" ")).strip()
     hostname = subprocess.check_output("cat /proc/sys/kernel/hostname".split(" ")).strip()
@@ -25,10 +31,10 @@ def run():
     # Get role
     role = "compute"
     # Check if main mgmt node
-    if ip == data["mgmt1"]["ip"] and hostname == "%s.%s" % (data["mgmt1"]["hostname"].lower(), data["mgmt1"]["domain"].lower()):
+    if ip == data["mgmt1"]["ip"] and hostname == "%s.%s" % (data["mgmt1"]["hostname"], data["mgmt1"]["domain"]):
         role = "master"    
 
-    if ip == data["mgmt2"]["ip"] and hostname == "%s.%s" % (data["mgmt2"]["hostname"].lower(), data["mgmt2"]["domain"].lower()):
+    if ip == data["mgmt2"]["ip"] and hostname == "%s.%s" % (data["mgmt2"]["hostname"], data["mgmt2"]["domain"]):
         role = "failover"
 
     os.chdir("/tmp/symphony-automation") 
